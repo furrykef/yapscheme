@@ -11,7 +11,7 @@ def parseOne(arg):
     return Parser.parse(arg)[0]
 
 def runEnv(arg):
-    return Environment.Environment(Parser.parse(arg)).run()
+    return Environment.Environment().runOne(parseOne(arg))
 
 
 # @TODO@ - more tests here!

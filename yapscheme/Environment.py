@@ -17,38 +17,35 @@ class NotCallableError(EnvironmentError):
 
 
 class Environment(object):
-    def __init__(self, parse_tree):
-        self.__parse_tree = parse_tree
-
-    def run(self, parse_tree=None):
-        if parse_tree is None:
-            # @TODO@ - if self.__parse_tree hasn't been set?
-            parse_tree = self.__parse_tree
-
+    def run(self, parse_tree):
+        results = []
         for expression in parse_tree:
-            if isinstance(expression, tokens.Cons):
-                operation = expression.car
-                if not isinstance(operation, tokens.Identifier):
-                    raise NotCallableError("Not a macro or procedure")
-                if operation == tokens.Identifier('+'):
-                    result = 0
-                    cell = expression.cdr
-                    while cell != tokens.NullCons():
-                        if isinstance(cell.car, tokens.Cons):
-                            # Procedure call
-                            # @TODO@ - having to stick it in a list feels silly
-                            value = self.run([cell.car]).value
-                        else:
-                            # Just an expression
-                            value = cell.car.value
-                        result += value
-                        cell = cell.cdr
-                    return tokens.Number(result)
-                elif operation == tokens.Identifier('quote'):
-                    if expression.cdr == tokens.NullCons():
-                        raise NotEnoughArgumentsError("quote: Not enough arguments")
-                    if expression.cdr.cdr != tokens.NullCons():
-                        raise TooManyArgumentsError("quote: Too many arguments")
-                    return expression.cdr.car
-            else:
-                return expression
+            results.append(self.runOne(expression))
+        return results
+
+    def runOne(self, expression):
+        if isinstance(expression, tokens.Cons):
+            operation = expression.car
+            if not isinstance(operation, tokens.Identifier):
+                raise NotCallableError("Not a macro or procedure")
+            if operation == tokens.Identifier('+'):
+                result = 0
+                cell = expression.cdr
+                while cell != tokens.NullCons():
+                    if isinstance(cell.car, tokens.Cons):
+                        # Procedure call
+                        value = self.runOne(cell.car).value
+                    else:
+                        # Just an expression
+                        value = cell.car.value
+                    result += value
+                    cell = cell.cdr
+                return tokens.Number(result)
+            elif operation == tokens.Identifier('quote'):
+                if expression.cdr == tokens.NullCons():
+                    raise NotEnoughArgumentsError("quote: Not enough arguments")
+                if expression.cdr.cdr != tokens.NullCons():
+                    raise TooManyArgumentsError("quote: Too many arguments")
+                return expression.cdr.car
+        else:
+            return expression
