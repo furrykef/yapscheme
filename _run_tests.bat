@@ -1,2 +1,2 @@
-@python -m pyr5rs.tests.tests
+@python -m yapscheme.tests.tests
 @pause
