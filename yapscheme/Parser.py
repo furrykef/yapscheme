@@ -34,7 +34,7 @@ class BadDotPairError(SyntaxError):
 # @TODO@ - test cases for regexps (especially atoms/identifiers)
 _MATCH_ATOM_CHAR = re.compile("^[-A-Za-z0-9!$%&*+./:<=>?@^_~]$")
 _MATCH_INTEGER_LITERAL = re.compile(r"^(\+|-)?\d+$")
-_MATCH_IDENTIFIER = re.compile("^[A-Za-z!$%&*/:<=>?@^_~]([-+.0-9A-Za-z!$%&*/:<=>?@^_~]+)$")
+_MATCH_IDENTIFIER = re.compile("^[A-Za-z!$%&*/:<=>?@^_~]([-+.0-9A-Za-z!$%&*/:<=>?@^_~]*)$")
 
 class Parser(object):
     def loadFromString(self, code):

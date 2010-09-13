@@ -24,7 +24,7 @@ Test cases:
 * Return error on trying to modify a constant literal, e.g. with set-car!. (not required by standard)
 * (assert-equal 12 ((if #f + *) 3 4))
 * Dot-pairs in lambda: (lambda (the-car . the-cdr))
-* Invalid identifiers: +banana, -banana, .banana
+* Reject: ((quote +) 1 1)
 
 <foof> you might want to grab the tests from chibi-scheme, they're divided into basic tests (procedure calls, closures, etc.), then r5rs tests, then library tests
 
@@ -58,8 +58,8 @@ These will be few, because, by and large, this implementation is intended to adh
 * R5RS 2.2 only requires accepting spaces and newlines as whitespace. We define whitespace as Python does: space, tab, CR, LF, form feed, vertical tab.
 
 
-Unresolved questions
---------------------
+Quotation
+---------
 I was thinking e.g. '() would expand to (quote ()), where "quote" behaves like a primitive macro that is evaluated at runtime.
 
 But in DrScheme, "quote" does not appear to behave like a macro:
@@ -68,3 +68,9 @@ But in DrScheme, "quote" does not appear to behave like a macro:
 Indeed, the expression "quote" in isolation, or any context beyond "(quote foo)", raises an error in DrScheme.
 
 It appears that applying "quote" should be done at compile time, not runtime. Might Scheme macros depend on this in some way? Or is this an implementation detail? (Looks like an implementation detail to me... macros seem to handle their arguments as black boxes.)
+
+Notes from DrScheme:
+    (number? 7)     => #t
+    (number? '7)    => #t
+    (number? ''7)   => #f
+    (list? ''7)     => #t

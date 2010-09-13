@@ -10,7 +10,10 @@ from yapscheme.tokens import Cons, EmptyList, Identifier, Number, String
 def parseOne(arg):
     return Parser.parse(arg)[0]
 
-def runEnv(arg):
+def run(arg):
+    return Environment.Environment().run(Parser.parse(arg))
+
+def runOne(arg):
     return Environment.Environment().runOne(parseOne(arg))
 
 
@@ -137,45 +140,93 @@ class TestParser(unittest.TestCase):
 
 class TestBareEnvironment(unittest.TestCase):
     def testInteger(self):
-        self.assertEqual(runEnv("-1337"), Number(-1337))
+        self.assertEqual(runOne("-1337"), Number(-1337))
 
     def testQuoteInteger(self):
-        self.assertEqual(runEnv("(quote 7)"), Number(7))
+        self.assertEqual(runOne("(quote 7)"), Number(7))
 
     def testRejectQuoteWithMultipleArguments(self):
         with self.assertRaises(Environment.TooManyArgumentsError):
-            runEnv("(quote 7 2)")
+            runOne("(quote 7 2)")
 
     def testRejectQuoteWithNoArguments(self):
         with self.assertRaises(Environment.NotEnoughArgumentsError):
-            runEnv("(quote)")
+            runOne("(quote)")
 
     def testQuoteList(self):
-        self.assertEqual(runEnv("(quote (1 2 3))"), Cons(Number(1), Cons(Number(2), Cons(Number(3), EmptyList()))))
+        self.assertEqual(runOne("(quote (1 2 3))"), Cons(Number(1), Cons(Number(2), Cons(Number(3), EmptyList()))))
 
     def testAdditionOfTwoOperands(self):
-        self.assertEqual(runEnv("(+ 123 456)"), Number(579))
+        self.assertEqual(runOne("(+ 123 456)"), Number(579))
 
     def testAdditionOfThreeOperands(self):
-        self.assertEqual(runEnv("(+ 1 2 3)"), Number(6))
+        self.assertEqual(runOne("(+ 1 2 3)"), Number(6))
 
     def testAdditionOfNoOperands(self):
-        self.assertEqual(runEnv("(+)"), Number(0))
+        self.assertEqual(runOne("(+)"), Number(0))
 
     def testNestedAddition(self):
-        self.assertEqual(runEnv("(+ (+ 1 2) (+ 3 4))"), Number(10))
+        self.assertEqual(runOne("(+ (+ 1 2) (+ 3 4))"), Number(10))
 
     def testRejectNullProcedure(self):
         with self.assertRaises(Environment.NotCallableError):
-            runEnv("()")
+            runOne("()")
 
     def testRejectNumberAsProcedure(self):
         with self.assertRaises(Environment.NotCallableError):
-            runEnv("(27)")
+            runOne("(27)")
 
     def testRejectProcedureCallWithDot(self):
         with self.assertRaises(Environment.ImproperListCallError):
-            runEnv("(+ 1 . 2)")
+            runOne("(+ 1 . 2)")
+
+    def testRejectUnknownIdentifier(self):
+        with self.assertRaises(Environment.UnknownIdentifier):
+            runOne("this-does-not-exist")
+
+    def testRejectCallingUnknownIdentifier(self):
+        with self.assertRaises(Environment.UnknownIdentifier):
+            runOne("(this-does-not-exist)")
+
+    def testDefine(self):
+        result = run("(define the-answer 42) the-answer")
+        self.assertEqual(result, [None, Number(42)])
+
+    def testRejectDefineWithTooManyArguments(self):
+        with self.assertRaises(Environment.TooManyArgumentsError):
+            runOne("(define hello 2 3)")
+
+    def testRejectDefineWithNoArguments(self):
+        with self.assertRaises(Environment.NotEnoughArgumentsError):
+            runOne("(define)")
+
+    def testRejectDefineWithOneArgument(self):
+        with self.assertRaises(Environment.NotEnoughArgumentsError):
+            runOne("(define foo)")
+
+    def testDefineRequiresAnIdentifierAsFirstArgument(self):
+        with self.assertRaises(Environment.BadArgumentError):
+            runOne("(define 7 2)")
+
+    def testSubtraction(self):
+        self.assertEqual(runOne("(- 2 7)"), Number(-5))
+
+    def testRejectSubtrationWithNoOperands(self):
+        with self.assertRaises(Environment.NotEnoughArgumentsError):
+            runOne("(-)")
+
+    def testSubtractionWithOneOperandIsNegation(self):
+        self.assertEqual(runOne("(- 8)"), Number(-8))
+
+    def testMultiplication(self):
+        self.assertEqual(runOne("(* 7 2)"), Number(14))
+
+    def testMultiplicationWithNoOperands(self):
+        self.assertEqual(runOne("(*)"), Number(1))
+
+    def testAdditionWithDefine(self):
+        result = run("(define one 1) (+ one one)")
+        self.assertEqual(result, [None, Number(2)])
 
 
 if __name__ == '__main__':
