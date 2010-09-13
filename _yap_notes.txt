@@ -1,0 +1,61 @@
+(These are my development notes to myself and not intended for any other purpose. - Kef)
+
+
+R5RS spec: http://www.schemers.org/Documents/Standards/R5RS/HTML/
+
+Some notes here: http://community.schemewiki.org/?scheme-faq-standards
+
+File structure of Python project: http://jcalderone.livejournal.com/39794.html
+
+Should the Parser class support the 'with' statement (to ensure file always closes)?
+
+Smart file handling that will always raise EOFError after hitting end of file (saves us from having to check for '' after every time we read) -- keeping track of line and column numbers would be nice, too
+
+Python 3.x support
+
+Test cases:
+* Recursion limit (prefer a 'soft crash' rather than a hard crash caused by exhausting system memory)... for example, raise exception if the call stack grows to have more than N function calls. I don't yet know a good value for N. Maybe 1024?
+* Tail recursion optimization
+** Test when it should be applied (iterate a gazillion times)
+** Test when it should NOT be applied (iterate a gazillion times and catch exception)
+* Continuations can be invoked multiple times
+* "One of [the most crucial aspects of the numeric tower], which is frequently overlooked, is that when encountering an overflow during some operation on exact numbers, Schemes MUST either return an inexact result or report an error; returning a bogus exact result is NOT an option."
+** Probably not a problem for us... are there any types that can overflow at all?
+* Return error on trying to modify a constant literal, e.g. with set-car!. (not required by standard)
+* (assert-equal 12 ((if #f + *) 3 4))
+* Dot-pairs in lambda: (lambda (the-car . the-cdr))
+* Invalid identifiers: +banana, -banana, .banana
+
+
+<foof> you might want to grab the tests from chibi-scheme, they're divided into basic tests (procedure calls, closures, etc.), then r5rs tests, then library tests
+
+
+Implementation details
+----------------------
+Sometimes the standard leaves something up to the implementation: the implementation must do *something*, but doesn't say exactly what. These are the decisions we've made:
+
+6.2.4: The standard specifies four precision levels for inexact numbers: "short, single, double, and long". All of them are mapped to Python floats.
+
+6.3.5: "Scheme does not specify the effect of a backslash within a string that is not followed by a doublequote or backslash." Our implementation raises a syntax error. (It would be as easy to let the backslash pass through, but I figure that if the programmer wants a literal backslash, they should type two backslashes, as the standard specifies.) This is the behavior of DrScheme, except it allows common escape sequences such as \n.
+
+"A string constant may continue from one line to the next, but the exact contents of such a string are unspecified." We simply incorporate the newline into the string, as does DrScheme.
+
+
+Deliberate extensions
+---------------------
+These will be few, because, by and large, this implementation is intended to adhere exactly to the standard, no more, no less. However, some extensions make things considerably easier to implement, and the lack of certain extensions would be surprising (e.g., not recognizing tabs as whitespace):
+
+* The entire Python foreign language interface
+* R5RS 2.2 only requires accepting spaces and newlines as whitespace. We define whitespace as Python does: space, tab, CR, LF, form feed, vertical tab.
+
+
+Unresolved questions
+--------------------
+I was thinking e.g. '() would expand to (quote ()), where "quote" behaves like a primitive macro that is evaluated at runtime.
+
+But in DrScheme, "quote" does not appear to behave like a macro:
+    (quote . (() . ())) -- not equivalent to (quote ()); instead raises error
+
+Indeed, the expression "quote" in isolation, or any context beyond "(quote foo)", raises an error in DrScheme.
+
+It appears that applying "quote" should be done at compile time, not runtime. Might Scheme macros depend on this in some way? Or is this an implementation detail? (Looks like an implementation detail to me... macros seem to handle their arguments as black boxes.)
