@@ -31,7 +31,7 @@ class Environment(object):
             if operation == tokens.Identifier('+'):
                 result = 0
                 cell = expression.cdr
-                while cell != tokens.NullCons():
+                while cell != tokens.EmptyList():
                     if isinstance(cell.car, tokens.Cons):
                         # Procedure call
                         value = self.runOne(cell.car).value
@@ -42,10 +42,12 @@ class Environment(object):
                     cell = cell.cdr
                 return tokens.Number(result)
             elif operation == tokens.Identifier('quote'):
-                if expression.cdr == tokens.NullCons():
+                if expression.cdr == tokens.EmptyList():
                     raise NotEnoughArgumentsError("quote: Not enough arguments")
-                if expression.cdr.cdr != tokens.NullCons():
+                if expression.cdr.cdr != tokens.EmptyList():
                     raise TooManyArgumentsError("quote: Too many arguments")
                 return expression.cdr.car
+        elif isinstance(expression, tokens.EmptyList):
+            raise NotCallableError("Empty list is not callable")
         else:
             return expression

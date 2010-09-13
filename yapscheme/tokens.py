@@ -60,8 +60,12 @@ class Cons(object):
         return '(' + str(self.car) + ' . ' + str(self.cdr) + ')'
 
 
-def NullCons():
-    return Cons(None, None)
+class EmptyList(object):
+    def __eq__(self, other):
+        return isinstance(other, EmptyList)
+
+    def __ne__(self, other):
+        return not (self == other)
 
 
 # Used internally by parser

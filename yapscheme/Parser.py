@@ -144,7 +144,7 @@ class Parser(object):
                 expr = self.parseNextExpression(allow_dot_operator=True, allow_close_paren=True)
                 if expr is tokens.CloseParen:
                     if first:
-                        return tokens.NullCons()
+                        return tokens.EmptyList()
                     else:
                         return root_cons.cdr
                 elif expr is tokens.DotOperator:
@@ -156,7 +156,7 @@ class Parser(object):
                         raise BadDotPairError()
                     return root_cons.cdr
                 else:
-                    new_cons = tokens.Cons(expr, tokens.NullCons())
+                    new_cons = tokens.Cons(expr, tokens.EmptyList())
                     last_cons.cdr = new_cons
                     last_cons = new_cons
                 first = False

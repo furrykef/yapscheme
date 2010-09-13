@@ -4,7 +4,7 @@ import unittest
 
 from yapscheme import Parser
 from yapscheme import Environment
-from yapscheme.tokens import Cons, Identifier, NullCons, Number, String
+from yapscheme.tokens import Cons, EmptyList, Identifier, Number, String
 
 
 def parseOne(arg):
@@ -12,12 +12,6 @@ def parseOne(arg):
 
 def runEnv(arg):
     return Environment.Environment().runOne(parseOne(arg))
-
-
-# @TODO@ - more tests here!
-class TestDataTypes(unittest.TestCase):
-    def testNullCons(self):
-        self.assertEqual(NullCons(), Cons(None, None))
 
 
 class TestParser(unittest.TestCase):
@@ -111,7 +105,7 @@ class TestParser(unittest.TestCase):
 
     def testSimpleList(self):
         result = parseOne("(1 2 3)")
-        self.assertEqual(result, Cons(Number(1), Cons(Number(2), Cons(Number(3), NullCons()))))
+        self.assertEqual(result, Cons(Number(1), Cons(Number(2), Cons(Number(3), EmptyList()))))
 
     def testIdentifier(self):
         result = parseOne("identifier")
@@ -137,8 +131,8 @@ class TestParser(unittest.TestCase):
         result = parseOne("-")
         self.assertEqual(result, Identifier("-"))
 
-    def testNullListIsNull(self):
-        self.assertEqual(parseOne("()"), NullCons())
+    def testEmptyList(self):
+        self.assertEqual(parseOne("()"), EmptyList())
 
 
 class TestBareEnvironment(unittest.TestCase):
@@ -157,7 +151,7 @@ class TestBareEnvironment(unittest.TestCase):
             runEnv("(quote)")
 
     def testQuoteList(self):
-        self.assertEqual(runEnv("(quote (1 2 3))"), Cons(Number(1), Cons(Number(2), Cons(Number(3), NullCons()))))
+        self.assertEqual(runEnv("(quote (1 2 3))"), Cons(Number(1), Cons(Number(2), Cons(Number(3), EmptyList()))))
 
     def testAdditionOfTwoOperands(self):
         self.assertEqual(runEnv("(+ 123 456)"), Number(579))
