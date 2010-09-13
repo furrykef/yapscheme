@@ -9,17 +9,30 @@ class _Comparable(object):
         self.value = value
 
     # Since Python 3.x doesn't have __cmp__ anymore
+    # @TODO@ -- __class__ comparison is a *severe* hack
     def __lt__(self, other):
+        if not self.__class__ == other.__class__:
+            return False
         return self.value < other.value
     def __gt__(self, other):
+        if not self.__class__ == other.__class__:
+            return False
         return self.value > other.value
     def __eq__(self, other):
+        if not self.__class__ == other.__class__:
+            return False
         return self.value == other.value
     def __le__(self, other):
+        if not self.__class__ == other.__class__:
+            return False
         return self.value <= other.value
     def __ge__(self, other):
+        if not self.__class__ == other.__class__:
+            return False
         return self.value >= other.value
     def __ne__(self, other):
+        if not self.__class__ == other.__class__:
+            return False
         return self.value != other.value
 
     def __str__(self):
@@ -44,19 +57,23 @@ class Cons(object):
         self.car = car
         self.cdr = cdr
 
-    def __eq__(self, other):
-        # @XXX@ - the exception handling is a hack of the highest order!!
-        try:
-            return self.car == other.car and self.cdr == other.cdr
-        except AttributeError:
+    # @TODO@ - unit testing on each execution path?
+    def isImproperList(self):
+        if self.cdr == EmptyList():
             return False
+        if not isinstance(self.cdr, Cons):
+            return True
+        return self.cdr.isImproperList()
+
+    def __eq__(self, other):
+        if not isinstance(other, Cons):
+            return False
+        return self.car == other.car and self.cdr == other.cdr
 
     def __ne__(self, other):
         return not (self == other)
 
     def __str__(self):
-        if self.car is None and self.cdr is None:
-            return '()'
         return '(' + str(self.car) + ' . ' + str(self.cdr) + ')'
 
 
@@ -66,6 +83,9 @@ class EmptyList(object):
 
     def __ne__(self, other):
         return not (self == other)
+
+    def __str__(self):
+        return "()"
 
 
 # Used internally by parser

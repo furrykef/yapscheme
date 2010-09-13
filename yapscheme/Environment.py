@@ -15,6 +15,9 @@ class TooManyArgumentsError(EnvironmentError):
 class NotCallableError(EnvironmentError):
     pass
 
+class ImproperListCallError(EnvironmentError):
+    pass
+
 
 class Environment(object):
     def run(self, parse_tree):
@@ -25,6 +28,9 @@ class Environment(object):
 
     def runOne(self, expression):
         if isinstance(expression, tokens.Cons):
+            if expression.isImproperList():
+                raise ImproperListCallError
+
             operation = expression.car
             if not isinstance(operation, tokens.Identifier):
                 raise NotCallableError("Not a macro or procedure")
