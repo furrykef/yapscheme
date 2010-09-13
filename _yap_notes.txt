@@ -26,8 +26,17 @@ Test cases:
 * Dot-pairs in lambda: (lambda (the-car . the-cdr))
 * Invalid identifiers: +banana, -banana, .banana
 
-
 <foof> you might want to grab the tests from chibi-scheme, they're divided into basic tests (procedure calls, closures, etc.), then r5rs tests, then library tests
+
+R6RS test suite linked to here: http://www.r6rs.org/implementations.html
+
+
+Tail calling
+------------
+HYPOTHESIS: any call at the end of an S-expression is a tail call. Any other call is not a tail call.
+
+Not necessarily: (if (foo) (bar) (baz)) -- 'bar' is a tail call, not just 'baz'.
+
 
 
 Implementation details

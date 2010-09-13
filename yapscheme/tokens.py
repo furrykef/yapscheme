@@ -22,6 +22,9 @@ class _Comparable(object):
     def __ne__(self, other):
         return self.value != other.value
 
+    def __str__(self):
+        return str(self.value)
+
 class Number(_Comparable):
     pass
 
@@ -42,10 +45,20 @@ class Cons(object):
         self.cdr = cdr
 
     def __eq__(self, other):
-        return self.car == other.car and self.cdr == other.cdr
+        # @XXX@ - the exception handling is a hack of the highest order!!
+        try:
+            return self.car == other.car and self.cdr == other.cdr
+        except AttributeError:
+            return False
 
     def __ne__(self, other):
         return not (self == other)
+
+    def __str__(self):
+        if self.car is None and self.cdr is None:
+            return '()'
+        return '(' + str(self.car) + ' . ' + str(self.cdr) + ')'
+
 
 def NullCons():
     return Cons(None, None)

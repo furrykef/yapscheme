@@ -3,11 +3,15 @@ from __future__ import division
 import unittest
 
 from yapscheme import Parser
+from yapscheme import Environment
 from yapscheme.tokens import Cons, Identifier, NullCons, Number, String
 
 
 def parseOne(arg):
     return Parser.parse(arg)[0]
+
+def runEnv(arg):
+    return Environment.Environment(Parser.parse(arg)).run()
 
 
 # @TODO@ - more tests here!
@@ -132,6 +136,37 @@ class TestParser(unittest.TestCase):
     def testBareMinusIsAnIdentifier(self):
         result = parseOne("-")
         self.assertEqual(result, Identifier("-"))
+
+
+class TestBareEnvironment(unittest.TestCase):
+    def testInteger(self):
+        self.assertEqual(runEnv("-1337"), Number(-1337))
+
+    def testQuoteInteger(self):
+        self.assertEqual(runEnv("(quote 7)"), Number(7))
+
+    def testRejectQuoteWithMultipleArguments(self):
+        with self.assertRaises(Environment.TooManyArgumentsError):
+            runEnv("(quote 7 2)")
+
+    def testRejectQuoteWithNoArguments(self):
+        with self.assertRaises(Environment.NotEnoughArgumentsError):
+            runEnv("(quote)")
+
+    def testQuoteList(self):
+        self.assertEqual(runEnv("(quote (1 2 3))"), Cons(Number(1), Cons(Number(2), Cons(Number(3), NullCons()))))
+
+    def testAdditionOfTwoOperands(self):
+        self.assertEqual(runEnv("(+ 123 456)"), Number(579))
+
+    def testAdditionOfThreeOperands(self):
+        self.assertEqual(runEnv("(+ 1 2 3)"), Number(6))
+
+    def testAdditionOfNoOperands(self):
+        self.assertEqual(runEnv("(+)"), Number(0))
+
+    def testNestedAddition(self):
+        self.assertEqual(runEnv("(+ (+ 1 2) (+ 3 4))"), Number(10))
 
 
 if __name__ == '__main__':
