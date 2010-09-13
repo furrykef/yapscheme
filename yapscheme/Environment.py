@@ -12,6 +12,9 @@ class NotEnoughArgumentsError(EnvironmentError):
 class TooManyArgumentsError(EnvironmentError):
     pass
 
+class NotCallableError(EnvironmentError):
+    pass
+
 
 class Environment(object):
     def __init__(self, parse_tree):
@@ -25,6 +28,8 @@ class Environment(object):
         for expression in parse_tree:
             if isinstance(expression, tokens.Cons):
                 operation = expression.car
+                if not isinstance(operation, tokens.Identifier):
+                    raise NotCallableError("Not a macro or procedure")
                 if operation == tokens.Identifier('+'):
                     result = 0
                     cell = expression.cdr
@@ -41,9 +46,9 @@ class Environment(object):
                     return tokens.Number(result)
                 elif operation == tokens.Identifier('quote'):
                     if expression.cdr == tokens.NullCons():
-                        raise NotEnoughArgumentsError()
+                        raise NotEnoughArgumentsError("quote: Not enough arguments")
                     if expression.cdr.cdr != tokens.NullCons():
-                        raise TooManyArgumentsError()
+                        raise TooManyArgumentsError("quote: Too many arguments")
                     return expression.cdr.car
             else:
                 return expression

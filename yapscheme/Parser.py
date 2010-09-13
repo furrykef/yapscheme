@@ -143,7 +143,10 @@ class Parser(object):
             while True:
                 expr = self.parseNextExpression(allow_dot_operator=True, allow_close_paren=True)
                 if expr is tokens.CloseParen:
-                    return root_cons.cdr
+                    if first:
+                        return tokens.NullCons()
+                    else:
+                        return root_cons.cdr
                 elif expr is tokens.DotOperator:
                     if first:
                         # Dot operator not allowed at start of S-expression!

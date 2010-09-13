@@ -137,6 +137,9 @@ class TestParser(unittest.TestCase):
         result = parseOne("-")
         self.assertEqual(result, Identifier("-"))
 
+    def testNullListIsNull(self):
+        self.assertEqual(parseOne("()"), NullCons())
+
 
 class TestBareEnvironment(unittest.TestCase):
     def testInteger(self):
@@ -167,6 +170,14 @@ class TestBareEnvironment(unittest.TestCase):
 
     def testNestedAddition(self):
         self.assertEqual(runEnv("(+ (+ 1 2) (+ 3 4))"), Number(10))
+
+    def testRejectNullProcedure(self):
+        with self.assertRaises(Environment.NotCallableError):
+            runEnv("()")
+
+    def testRejectNumberAsProcedure(self):
+        with self.assertRaises(Environment.NotCallableError):
+            runEnv("(27)")
 
 
 if __name__ == '__main__':
