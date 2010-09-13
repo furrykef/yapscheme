@@ -228,6 +228,10 @@ class TestBareEnvironment(unittest.TestCase):
         result = run("(define one 1) (+ one one)")
         self.assertEqual(result, [None, Number(2)])
 
+    def testDefiningAliasForProcedure(self):
+        result = run("(define plus +) (plus 7 2)")
+        self.assertEqual(result, [None, Number(9)])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -66,7 +66,7 @@ def DEFINE(env, argument_list):
         raise TooManyArgumentsError("define: Too many arguments")
     if not isinstance(argument_list.car, tokens.Identifier):
         raise BadArgumentError("define: First argument must be an identifier")
-    env._sym_tbl[argument_list.car.value] = argument_list.cdr.car
+    env._sym_tbl[argument_list.car.value] = env.runOne(argument_list.cdr.car)
 
 def QUOTE(env, argument_list):
     if argument_list == tokens.EmptyList():
