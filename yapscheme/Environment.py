@@ -25,55 +25,51 @@ class UnknownIdentifier(EnvironmentError):
     pass
 
 
-def ADD(env, argument_list):
+@tokens.PythonProcedure
+def ADD(argument_list):
     result = 0
-    cur_cons = argument_list
-    while cur_cons != tokens.EmptyList():
-        result += env.runOne(cur_cons.car).value
-        cur_cons = cur_cons.cdr
+    for arg in argument_list:
+        result += arg.value
     return tokens.Number(result)
 
-def SUB(env, argument_list):
-    if argument_list == tokens.EmptyList():
+@tokens.PythonProcedure
+def SUB(argument_list):
+    if len(argument_list) == 0:
         raise NotEnoughArgumentsError("Subtraction requires at least one argument")
-
-    result = argument_list.car.value
-    cur_cons = argument_list.cdr
-    more_than_one_arg = False
-    while cur_cons != tokens.EmptyList():
-        more_than_one_arg = True
-        result -= env.runOne(cur_cons.car).value
-        cur_cons = cur_cons.cdr
-
-    if not more_than_one_arg:
+    elif len(argument_list) == 1:
         # One argument means negation
-        return tokens.Number(-result)
+        return tokens.Number(-argument_list[0].value)
     else:
+        result = argument_list[0].value
+        for arg in argument_list[1:]:
+            result -= arg.value
         return tokens.Number(result)
 
-def MUL(env, argument_list):
+@tokens.PythonProcedure
+def MUL(argument_list):
     result = 1
-    cur_cons = argument_list
-    while cur_cons != tokens.EmptyList():
-        result *= env.runOne(cur_cons.car).value
-        cur_cons = cur_cons.cdr
+    for arg in argument_list:
+        result *= arg.value
     return tokens.Number(result)
 
-def DEFINE(env, argument_list):
-    if argument_list == tokens.EmptyList() or argument_list.cdr == tokens.EmptyList():
-        raise NotEnoughArgumentsError("define: Not enough arguments")
-    if argument_list.cdr.cdr != tokens.EmptyList():
-        raise TooManyArgumentsError("define: Too many arguments")
-    if not isinstance(argument_list.car, tokens.Identifier):
-        raise BadArgumentError("define: First argument must be an identifier")
-    env._sym_tbl[argument_list.car.value] = env.runOne(argument_list.cdr.car)
 
-def QUOTE(env, argument_list):
-    if argument_list == tokens.EmptyList():
+@tokens.PythonMacro
+def DEFINE(env, argument_cons):
+    if argument_cons == tokens.EmptyList() or argument_cons.cdr == tokens.EmptyList():
+        raise NotEnoughArgumentsError("define: Not enough arguments")
+    if argument_cons.cdr.cdr != tokens.EmptyList():
+        raise TooManyArgumentsError("define: Too many arguments")
+    if not isinstance(argument_cons.car, tokens.Identifier):
+        raise BadArgumentError("define: First argument must be an identifier")
+    env._sym_tbl[argument_cons.car.value] = env.runOne(argument_cons.cdr.car)
+
+@tokens.PythonMacro
+def QUOTE(env, argument_cons):
+    if argument_cons == tokens.EmptyList():
         raise NotEnoughArgumentsError("quote: Not enough arguments")
-    if argument_list.cdr != tokens.EmptyList():
+    if argument_cons.cdr != tokens.EmptyList():
         raise TooManyArgumentsError("quote: Too many arguments")
-    return argument_list.car
+    return argument_cons.car
 
 
 class Environment(object):
@@ -96,12 +92,21 @@ class Environment(object):
         if isinstance(expression, tokens.Cons):
             if expression.isImproperList():
                 raise ImproperListCallError
-
             operation = self.runOne(expression.car)
-            if not callable(operation):
+            if isinstance(operation, tokens.PythonProcedure):
+                # A procedure evaluates its arguments first...
+                # (@TODO@ - consider adding traverse() and toPythonList() to EmptyList
+                #  in order to avoid this kind of special-casing)
+                if expression.cdr == tokens.EmptyList():
+                    args = []
+                else:
+                    args = expression.cdr.toPythonList()
+                return operation.call(self.run(args))
+            elif isinstance(operation, tokens.PythonMacro):
+                # ...but a macro does not.
+                return operation.call(self, expression.cdr)
+            else:
                 raise NotCallableError("Not a macro or procedure")
-            # @TODO@ - pre-evaluate arguments
-            return operation(self, expression.cdr)
         elif isinstance(expression, tokens.EmptyList):
             raise NotCallableError("Empty list is not callable")
         elif isinstance(expression, tokens.Identifier):

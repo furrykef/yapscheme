@@ -70,6 +70,19 @@ class Cons(object):
             return True
         return self.cdr.isImproperList()
 
+    # Assumes self.isImproperList() is false
+    def toPythonList(self):
+        return [x for x in self.traverse()]
+
+    # Assumes self.isImproperList() is false
+    def traverse(self):
+        cons = self
+        while True:
+            if cons == EmptyList():
+                return
+            yield cons.car
+            cons = cons.cdr
+
     def __eq__(self, other):
         if not isinstance(other, Cons):
             return False
@@ -91,6 +104,20 @@ class EmptyList(object):
 
     def __str__(self):
         return "()"
+
+
+class Callable(object):
+    pass
+
+class PythonCallable(Callable):
+    def __init__(self, call):
+        self.call = call
+
+class PythonProcedure(PythonCallable):
+    pass
+
+class PythonMacro(PythonCallable):
+    pass
 
 
 # Used internally by parser
