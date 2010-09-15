@@ -8,12 +8,10 @@ from yapscheme.tokens import Cons, EmptyList, Identifier, Number, String
 
 
 def parseOne(arg):
-    # 2to3.py will convert the below 'unicode' to a superfluous 'str'
-    return Parser.parse(unicode(arg))[0]
+    return Parser.parse(arg)[0]
 
 def run(arg):
-    # 2to3.py will convert the below 'unicode' to a superfluous 'str'
-    return Environment.Environment().run(Parser.parse(unicode(arg)))
+    return Environment.Environment().run(Parser.parse(arg))
 
 def runOne(arg):
     return Environment.Environment().runOne(parseOne(arg))
@@ -21,24 +19,24 @@ def runOne(arg):
 
 class TestParser(unittest.TestCase):
     def testPositiveInteger(self):
-        result = parseOne("7")
+        result = parseOne(u"7")
         self.assertEqual(result, Number(7))
 
     def testReallyPositiveInteger(self):
-        result = parseOne("+7")
+        result = parseOne(u"+7")
         self.assertEqual(result, Number(7))
 
     def testNegativeInteger(self):
-        result = parseOne("-42")
+        result = parseOne(u"-42")
         self.assertEqual(result, Number(-42))
 
     def testRejectIntegerContainingAlphas(self):
         with self.assertRaises(Parser.BadTokenError):
-            parseOne("123abc")
+            parseOne(u"123abc")
 
     def testRejectIntegerWithInterposedPlusSign(self):
         with self.assertRaises(Parser.BadTokenError):
-            parseOne("123+456")
+            parseOne(u"123+456")
 
     def testString(self):
         result = parseOne('"Hello mom"')
@@ -72,72 +70,72 @@ class TestParser(unittest.TestCase):
             parseOne('"Hello mom\\')
 
     def testIgnoreComments(self):
-        result = parseOne(";Comment\n7")
+        result = parseOne(u";Comment\n7")
         self.assertEqual(result, Number(7))
 
     def testJustACommentProducesEmptyExpressionList(self):
         self.assertEqual(Parser.parse(u";Comment"), [])
 
     def testSimpleDotPair(self):
-        result = parseOne("(7 . 2)")
+        result = parseOne(u"(7 . 2)")
         self.assertEqual(result, Cons(Number(7), Number(2)))
 
     def testUnterminatedDotPair(self):
         with self.assertRaises(Parser.UnterminatedError):
-            parseOne("(7 . 2")
+            parseOne(u"(7 . 2")
 
     def testRejectStrayParen(self):
         # @TODO@ - more specific exception type?
         with self.assertRaises(Parser.BadTokenError):
-            parseOne(")")
+            parseOne(u")")
 
     def testRejectStrayDotOperator(self):
         # @TODO@ - more specific exception type?
         with self.assertRaises(Parser.BadTokenError):
-            parseOne(".")
+            parseOne(u".")
 
     def testImproperList(self):
-        result = parseOne("(1 2 . 3)")
+        result = parseOne(u"(1 2 . 3)")
         self.assertEqual(result, Cons(Number(1), Cons(Number(2), Number(3))))
 
     def testRejectMoreThanOneExpressionAfterDotOperator(self):
         with self.assertRaises(Parser.BadDotPairError):
-            parseOne("(1 2 . 3 4)")
+            parseOne(u"(1 2 . 3 4)")
 
     def testRejectDotPairWithNoCar(self):
         with self.assertRaises(Parser.BadDotPairError):
-            parseOne("(. 7)")
+            parseOne(u"(. 7)")
 
     def testSimpleList(self):
-        result = parseOne("(1 2 3)")
+        result = parseOne(u"(1 2 3)")
         self.assertEqual(result, Cons(Number(1), Cons(Number(2), Cons(Number(3), EmptyList()))))
 
     def testIdentifier(self):
-        result = parseOne("identifier")
+        result = parseOne(u"identifier")
         self.assertEqual(result, Identifier("identifier"))
 
     def testRejectIdentifierStartingWithPlus(self):
         with self.assertRaises(Parser.BadTokenError):
-            result = parseOne("+id")
+            result = parseOne(u"+id")
 
     def testRejectIdentifierStartingWithMinus(self):
         with self.assertRaises(Parser.BadTokenError):
-            result = parseOne("-id")
+            result = parseOne(u"-id")
 
     def testRejectIdentifierStartingWithDot(self):
         with self.assertRaises(Parser.BadTokenError):
-            result = parseOne(".id")
+            result = parseOne(u".id")
 
     def testBarePlusIsAnIdentifier(self):
-        result = parseOne("+")
+        result = parseOne(u"+")
         self.assertEqual(result, Identifier("+"))
 
     def testBareMinusIsAnIdentifier(self):
-        result = parseOne("-")
+        result = parseOne(u"-")
         self.assertEqual(result, Identifier("-"))
 
     def testEmptyList(self):
-        self.assertEqual(parseOne("()"), EmptyList())
+        self.assertEqual(parseOne(u"()"), EmptyList())
 
 
 class TestBareEnvironment(unittest.TestCase):

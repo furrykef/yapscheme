@@ -1,8 +1,8 @@
 from __future__ import division
-from cStringIO import StringIO
+import io
 import re
-import os
 
+from yapscheme import MyStream
 from yapscheme import tokens
 
 
@@ -38,7 +38,7 @@ _MATCH_IDENTIFIER = re.compile("^[A-Za-z!$%&*/:<=>?@^_~]([-+.0-9A-Za-z!$%&*/:<=>
 
 class Parser(object):
     def loadFromString(self, code):
-        self.__file = StringIO(code)
+        self.__file = MyStream.MyStream(io.StringIO(code))
 
     def parse(self):
         # @XXX@ - what if self.__file is None or not defined?
@@ -58,17 +58,18 @@ class Parser(object):
     def parseNextExpression(self, allow_dot_operator=False, allow_close_paren=False):
         # Eat any whitespace and comments
         while True:
-            ch = self.__file.read(1)
-            if ch == '':
+            try:
+                ch = self.__file.read_ch()
+                if ch == ';':
+                    # Comment; skip to end of line
+                    while ch != '\n':
+                        ch = self.__file.read_ch()
+                elif not ch.isspace():
+                    # Not whitespace
+                    break
+            except MyStream.MyStreamEOF:
                 # We hit the end of the file
                 raise NothingToParse
-            elif ch == ';':
-                # Comment; skip to end of line
-                while ch not in ('', '\n'):
-                    ch = self.__file.read(1)
-            elif not ch.isspace():
-                # Not whitespace
-                break
 
         if ch == '"':
             return tokens.String(self.__read_string())
@@ -83,7 +84,9 @@ class Parser(object):
                 raise BadTokenError(ch)
         elif _MATCH_ATOM_CHAR.match(ch):
             # Assume an atom
-            atom = self.__read_rest_of_atom(ch)
+            # Put back last char so __read_atom can see it
+            self.__file.put_back()
+            atom = self.__read_atom()
             if atom == '.':
                 if allow_dot_operator:
                     # @TODO@ - parsing DotOperator as a token seems hacky
@@ -109,30 +112,26 @@ class Parser(object):
 
 
     def __read_string(self):
-        # We're starting from the character after the opening quote-mark
-        the_string = StringIO()
-        while True:
-            ch = self.__file.read(1)
-            if ch == '':
-                # We hit EOF before the string was terminated!
-                raise UnterminatedError("Unterminated string literal")
-            if ch == '\\':
-                # This is an escape sequence
-                ch = self.__file.read(1)
-                if ch == '':
-                    # @TODO@ - all these EOF checks are bothersome!
-                    raise UnterminatedError("Unterminated string literal")
-                elif ch in ('\\', '"'):
-                    the_string.write(ch)
+        try:
+            # We're starting from the character after the opening quote-mark
+            the_string = io.StringIO()
+            while True:
+                ch = self.__file.read_ch()
+                if ch == '\\':
+                    # This is an escape sequence
+                    ch = self.__file.read_ch()
+                    if ch in ('\\', '"'):
+                        the_string.write(ch)
+                    else:
+                        raise EscapeError("String has unknown escape sequence: \\%c" % ch)
+                elif ch == '"':
+                    # String terminated
+                    return the_string.getvalue()
                 else:
-                    raise EscapeError("String has unknown escape sequence: \\%c" % ch)
-            elif ch == '"':
-                # String terminated
-                return the_string.getvalue()
-            else:
-                # Just an ordinary char in the string
-                the_string.write(ch)
-
+                    # Just an ordinary char in the string
+                    the_string.write(ch)
+        except MyStream.MyStreamEOF:
+            raise UnterminatedError("Unterminated string literal")
 
     def __read_sexpr(self):
         # We're starting from the character after the opening paren
@@ -164,20 +163,21 @@ class Parser(object):
             raise UnterminatedError("Unterminated S-expression")
 
 
-    def __read_rest_of_atom(self, first_chr):
+    def __read_atom(self):
         # @TODO@ - StringIO, or is that overkill here? Try profiling...
-        atom = first_chr
-        while True:
-            ch = self.__file.read(1)
-            if _MATCH_ATOM_CHAR.match(ch):
-                atom += ch
-            else:
-                # End of atom
-                if ch != '':
-                    # Put back the char we read since it may belong to next token
-                    # @TODO@ - how to avoid seeking here?
-                    self.__file.seek(-1, os.SEEK_CUR)
-                return atom
+        atom = ''
+        try:
+            while True:
+                ch = self.__file.read_ch()
+                if _MATCH_ATOM_CHAR.match(ch):
+                    atom += ch
+                else:
+                    # End of atom
+                    # Put last char back since it isn't part of atom
+                    self.__file.put_back()
+                    return atom
+        except MyStream.MyStreamEOF:
+            return atom
 
 
 def parse(what):

@@ -16,6 +16,8 @@ Should the Parser class support the 'with' statement (to ensure file always clos
 
 Smart file handling that will always raise EOFError after hitting end of file (saves us from having to check for '' after every time we read) -- keeping track of line and column numbers would be nice, too
 
+If we stick with Python 2.7 support, remember isinstance(0L, int) is False!
+
 Python 3.x support
 
 Constant folding?
@@ -45,20 +47,10 @@ R6RS test suite linked to here: http://www.r6rs.org/implementations.html
 The way one Scheme interpreter was coded appears at the bottom of http://c2.com/cgi/wiki?RunAndReturnSuccessor
 
 
-Tail calling
-------------
-HYPOTHESIS: any call at the end of an S-expression is a tail call. Any other call is not a tail call.
-
-Not necessarily: (if (foo) (bar) (baz)) -- 'bar' is a tail call, not just 'baz'.
-
-Ah, but 'if' is a macro (at least internally). So it will resolve to a tail call whichever path is taken -- in a way, the interpreter won't even see the choice between 'bar' and 'baz'.
-
-
 Implementation details
 ----------------------
 Sometimes the standard leaves something up to the implementation: the implementation must do something, but doesn't say exactly what or how. These are the decisions we've made:
 
-5.2: Our "define" behaves like a macro in the sense that it's just a callable object. Racket cannot evaluate "define" by itself, for example. R5RS doesn't say we can do this, but then, it doesn't really say we can't. (Figure out ramifications of this. Is "(eval '(define foo 3))" required to be an error? Probably.)
 
 6.2.4: The standard specifies four precision levels for inexact numbers: "short, single, double, and long". All of them are mapped to Python floats.
 
@@ -121,7 +113,7 @@ Another example:
     > (invoke2)
     1
 
-As you can see, it's possible for a procedure and a macro to have the same name.
+As you can see, it's possible for a procedure and a macro to have the same name, though it's difficult to access the procedure when this is the case.
 
 
 Closures
@@ -136,12 +128,11 @@ In Racket:
 
 Is this what supposed to happen, or is this not actually defined by the standard?
 
-
 It seems to me that, assuming Racket's behavior is standard or at least permissible, a closure should simply hold a reference to each symbol table in the stack at the point it was defined, starting at the most local and ending at the global symbol table.
 
 
 Terminology
 -----------
-What I currently call "Python macros" are not really macros, since they are evaluated at runtime.
+What I currently call "Python macros" are not really macros, since they are evaluated at runtime. Maybe "runtime macro"?
 
 What I call an "Environment" (an interpreter and its state) does not match R5RS's definition of "environment" (a dictionary of bindings).
