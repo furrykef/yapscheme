@@ -83,10 +83,7 @@ class Environment(object):
         }
 
     def run(self, parse_tree):
-        results = []
-        for expression in parse_tree:
-            results.append(self.runOne(expression))
-        return results
+        return [self.runOne(expression) for expression in parse_tree]
 
     def runOne(self, expression):
         if isinstance(expression, tokens.Cons):
