@@ -67,7 +67,7 @@ class Parser(object):
                 elif not ch.isspace():
                     # Not whitespace
                     break
-            except MyStream.MyStreamEOF:
+            except MyStream.EOF:
                 # We hit the end of the file
                 raise NothingToParse
 
@@ -130,7 +130,7 @@ class Parser(object):
                 else:
                     # Just an ordinary char in the string
                     the_string.write(ch)
-        except MyStream.MyStreamEOF:
+        except MyStream.EOF:
             raise UnterminatedError("Unterminated string literal")
 
     def __read_sexpr(self):
@@ -176,7 +176,7 @@ class Parser(object):
                     # Put last char back since it isn't part of atom
                     self.__file.put_back()
                     return atom
-        except MyStream.MyStreamEOF:
+        except MyStream.EOF:
             return atom
 
 
