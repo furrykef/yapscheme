@@ -53,7 +53,8 @@ class String(_Comparable):
 # @TODO@ -- disallow comparison of atoms beyond == and !=
 # Also disallow comparison of atoms and strings
 class Identifier(_Comparable):
-    pass
+    def __init__(self, value):
+        super(Identifier, self).__init__(value.lower())
 
 
 class Cons(object):

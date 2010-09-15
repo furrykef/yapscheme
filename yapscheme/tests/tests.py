@@ -232,6 +232,10 @@ class TestBareEnvironment(unittest.TestCase):
         result = run("(define plus +) (plus 7 2)")
         self.assertEqual(result, [None, Number(9)])
 
+    def testCaseInsensitivityOfBoundVariables(self):
+        result = run("(define FOO 42) FoO")
+        self.assertEqual(result, [None, Number(42)])
+
 
 if __name__ == '__main__':
     unittest.main()
