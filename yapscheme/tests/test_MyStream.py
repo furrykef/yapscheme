@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from __future__ import division
 import io
 import unittest
 
@@ -7,7 +6,7 @@ from yapscheme import MyStream
 
 class TestMyStream(unittest.TestCase):
     def setUp(self):
-        self.test_string = u"abcdef"
+        self.test_string = "abcdef"
         self.stream = MyStream.MyStream(io.StringIO(self.test_string))
 
     def testReadOneChar(self):
@@ -20,7 +19,7 @@ class TestMyStream(unittest.TestCase):
         self.assertEqual(s, 'ab')
 
     def testThrowEof(self):
-        for x in xrange(len(self.test_string)):
+        for x in range(len(self.test_string)):
               self.stream.read_ch()
         with self.assertRaises(MyStream.EOF):
             self.stream.read_ch()
@@ -28,8 +27,8 @@ class TestMyStream(unittest.TestCase):
     def testReadEntireStream(self):
         s = ''
         try:
-            # The xrange is to ensure we can't loop infinitely
-            for x in xrange(42):
+            # The range is to ensure we can't loop indefinitely
+            for x in range(42):
                 s += self.stream.read_ch()
         except MyStream.EOF:
             pass

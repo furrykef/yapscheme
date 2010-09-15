@@ -10,6 +10,8 @@ Some notes here: http://community.schemewiki.org/?scheme-faq-standards
 
 Understanding macros: http://www.xs4all.nl/~hipster/lib/scheme/gauche/define-syntax-primer.txt
 
+dash (#python)'s parser generator: https://launchpad.net/pymeta
+
 File structure of Python project: http://jcalderone.livejournal.com/39794.html
 
 Should the Parser class support the 'with' statement (to ensure file always closes)?
@@ -17,8 +19,6 @@ Should the Parser class support the 'with' statement (to ensure file always clos
 Smart file handling that will always raise EOFError after hitting end of file (saves us from having to check for '' after every time we read) -- keeping track of line and column numbers would be nice, too
 
 If we stick with Python 2.7 support, remember isinstance(0L, int) is False!
-
-Python 3.x support
 
 Constant folding?
 * Test case: evaluate "7 7", check "results[0] is results[1]"

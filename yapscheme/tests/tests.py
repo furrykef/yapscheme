@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from __future__ import division
 import unittest
 
 from yapscheme import Parser
@@ -8,12 +7,10 @@ from yapscheme.tokens import Cons, EmptyList, Identifier, Number, String
 
 
 def parseOne(arg):
-    # 2to3.py will convert the below 'unicode' to a superfluous 'str'
-    return Parser.parse(unicode(arg))[0]
+    return Parser.parse(arg)[0]
 
 def run(arg):
-    # 2to3.py will convert the below 'unicode' to a superfluous 'str'
-    return Environment.Environment().run(Parser.parse(unicode(arg)))
+    return Environment.Environment().run(Parser.parse(arg))
 
 def runOne(arg):
     return Environment.Environment().runOne(parseOne(arg))
@@ -76,7 +73,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(result, Number(7))
 
     def testJustACommentProducesEmptyExpressionList(self):
-        self.assertEqual(Parser.parse(u";Comment"), [])
+        self.assertEqual(Parser.parse(";Comment"), [])
 
     def testSimpleDotPair(self):
         result = parseOne("(7 . 2)")

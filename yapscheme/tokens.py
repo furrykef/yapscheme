@@ -1,5 +1,3 @@
-from __future__ import division
-
 # @TODO@ - disallow comparing, e.g., a Number and a String?
 # What about disallowing comparing strings except with == and !=?
 
