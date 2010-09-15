@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
-from yapscheme import Parser, Environment
+from . import Parser, Environment
 
 
 def main():

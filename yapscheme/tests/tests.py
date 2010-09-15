@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import unittest
 
-from yapscheme import Parser
-from yapscheme import Environment
-from yapscheme.tokens import Cons, EmptyList, Identifier, Number, String
+from .. import Parser
+from .. import Environment
+from ..tokens import Cons, EmptyList, Identifier, Number, String
 
 
 def parseOne(arg):

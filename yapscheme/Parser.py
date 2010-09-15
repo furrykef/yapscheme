@@ -1,8 +1,8 @@
 import io
 import re
 
-from yapscheme import MyStream
-from yapscheme import tokens
+from . import MyStream
+from . import tokens
 
 
 class ParseError(Exception):
@@ -148,10 +148,10 @@ class Parser(object):
                 elif expr is tokens.DotOperator:
                     if first:
                         # Dot operator not allowed at start of S-expression!
-                        raise BadDotPairError()
+                        raise BadDotPairError
                     last_cons.cdr = self.parseNextExpression()
                     if self.parseNextExpression(allow_close_paren=True) is not tokens.CloseParen:
-                        raise BadDotPairError()
+                        raise BadDotPairError
                     return root_cons.cdr
                 else:
                     new_cons = tokens.Cons(expr, tokens.EmptyList())

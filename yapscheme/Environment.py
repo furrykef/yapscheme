@@ -1,4 +1,4 @@
-from yapscheme import tokens
+from . import tokens
 
 
 class EnvironmentError(Exception):

@@ -2,7 +2,7 @@
 import io
 import unittest
 
-from yapscheme import MyStream
+from .. import MyStream
 
 class TestMyStream(unittest.TestCase):
     def setUp(self):
