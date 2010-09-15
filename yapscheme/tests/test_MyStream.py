@@ -20,9 +20,10 @@ class TestMyStream(unittest.TestCase):
         self.assertEqual(s, 'ab')
 
     def testThrowEof(self):
+        for x in xrange(len(self.test_string)):
+              self.stream.read_ch()
         with self.assertRaises(MyStream.EOF):
-            for x in xrange(len(self.test_string)+1):
-                self.stream.read_ch()
+            self.stream.read_ch()
 
     def testReadEntireStream(self):
         s = ''
