@@ -52,6 +52,22 @@ def MUL(argument_list):
 
 
 @tokens.PythonMacro
+def IF(env, argument_cons):
+    args = argument_cons.toPythonList()
+    if len(args) < 2:
+        raise NotEnoughArgumentsError("if requires at least two arguments")
+    if len(args) > 3:
+        raise TooManyArgumentsError("if can take at most three arguments")
+    if env.evalOne(args[0]) != tokens.Bool(False):
+        return env.evalOne(args[1])
+    else:
+        try:
+            return env.evalOne(args[2])
+        except IndexError:
+            # If statement with no false branch
+            return None
+
+@tokens.PythonMacro
 def DEFINE(env, argument_cons):
     if argument_cons == tokens.EmptyList() or argument_cons.cdr == tokens.EmptyList():
         raise NotEnoughArgumentsError("define: Not enough arguments")
@@ -77,6 +93,7 @@ class Interpreter(object):
             '-': SUB,
             '*': MUL,
             'define': DEFINE,
+            'if': IF,
             'quote': QUOTE
         }
 

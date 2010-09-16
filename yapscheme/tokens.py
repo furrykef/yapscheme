@@ -47,6 +47,11 @@ class Number(_Comparable):
 class String(_Comparable):
     pass
 
+# @TODO@ -- disallow comparison of bools beyond == and !=
+# Also disallow comparison of bools and numbers
+class Bool(_Comparable):
+    pass
+
 
 # @TODO@ -- disallow comparison of atoms beyond == and !=
 # Also disallow comparison of atoms and strings
@@ -103,6 +108,12 @@ class EmptyList(object):
 
     def __str__(self):
         return "()"
+
+    def traverse(self):
+        raise StopIteration
+
+    def toPythonList(self):
+        return []
 
 
 class Callable(object):

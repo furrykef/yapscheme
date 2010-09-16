@@ -133,9 +133,7 @@ It seems to me that, assuming Racket's behavior is standard or at least permissi
 
 Terminology
 -----------
-What I currently call "Python macros" are not really macros, since they are evaluated at runtime. Maybe "runtime macro"?
-
-What I call an "Environment" (an interpreter and its state) does not match R5RS's definition of "environment" (a dictionary of bindings).
+What I currently call "Python macros" are not really macros, since they are evaluated at runtime. Maybe "runtime macro"? "Raw args procedures"?
 
 
 Freakish stuff to take care of sometime

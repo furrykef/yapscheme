@@ -3,7 +3,7 @@ import unittest
 
 from .. import Parser
 from .. import Interpreter
-from ..tokens import Cons, EmptyList, Identifier, Number, String
+from ..tokens import Bool, Cons, EmptyList, Identifier, Number, String
 
 
 def parseOne(arg):
@@ -136,6 +136,20 @@ class TestParser(unittest.TestCase):
     def testEmptyList(self):
         self.assertEqual(parseOne("()"), EmptyList())
 
+    def testParseTrue(self):
+        self.assertEqual(parseOne("#t"), Bool(True))
+
+    def testParseFalse(self):
+        self.assertEqual(parseOne("#f"), Bool(False))
+
+    def testUnexpectedCharAfterHash(self):
+        with self.assertRaises(Parser.BadHashError):
+            parseOne("#q")
+
+    def testEOFAfterHash(self):
+        with self.assertRaises(Parser.UnexpectedEOFError):
+            parseOne("#")
+
 
 class TestBareInterpeter(unittest.TestCase):
     def testInteger(self):
@@ -234,6 +248,36 @@ class TestBareInterpeter(unittest.TestCase):
     def testCaseInsensitivityOfBoundVariables(self):
         result = run("(define FOO 42) FoO")
         self.assertEqual(result, [None, Number(42)])
+
+    def testIfTrue(self):
+        self.assertEqual(runOne("(if #t 1 2)"), Number(1))
+
+    def testIfFalse(self):
+        self.assertEqual(runOne("(if #f 1 2)"), Number(2))
+
+    def testRejectIfWithTooFewArguments(self):
+        with self.assertRaises(Interpreter.NotEnoughArgumentsError):
+            runOne("(if #t)")
+
+    def testRejectIfWithTooManyArguments(self):
+        with self.assertRaises(Interpreter.TooManyArgumentsError):
+            runOne("(if #t 1 2 3)")
+
+    def testIfWithNoFalseBranchAndYetItsFalse(self):
+        self.assertEqual(runOne("(if #f 42)"), None)
+
+    def testIfEvaluatesCondition(self):
+        self.assertEqual(runOne("(if (if #t #f) 1 2)"), Number(2))
+
+    def testIfEvaluatesFirstBranch(self):
+        self.assertEqual(runOne("(if #t (+ 0 1) 2)"), Number(1))
+
+    def testIfEvaluatesSecondBranch(self):
+        self.assertEqual(runOne("(if #f 1 (+ 0 2))"), Number(2))
+
+    # The real difference between Lisp and Scheme! ;)
+    def testEmptyListIsTrue(self):
+        self.assertEqual(runOne("(if (quote ()) 1 2)"), Number(1))
 
 
 if __name__ == '__main__':

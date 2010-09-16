@@ -1,0 +1,125 @@
+(These are notes to myself to help clarify my thoughts.)
+
+
+Procedure call 1: (add arg1 arg2)
+    push arg1
+    push arg2
+    push arg3
+    call add
+
+Procedure call 2: (add arg1 arg2 arg3)
+    push arg1
+    push arg2
+    push arg3
+    call add
+
+Procedure call 3: (add (add arg1 arg2) arg3)
+    push arg1
+    push arg2
+    call add
+    push result
+    push arg3
+    call add
+
+Procedure call 4: ((get-func) (add arg1 arg2) arg3)
+    push arg1
+    push arg2
+    call add
+    push arg3
+    call get-func
+    call result
+
+
+Procedure call 1a:
+    push ArgList(arg1, arg2)
+    call add
+
+Procedure call 2a:
+    push ArgList(arg1, arg2, arg3)
+    call add
+
+Procedure call 3a:
+    push ArgList(arg1, arg2)
+    call add
+    push ArgList(result, arg3)
+    call add
+
+Procedure call 4a:
+    push ArgList(arg1, arg2)
+    call add
+    push ArgList(result, arg3)
+    call get-func
+    call result
+
+
+OK, now we understand how to translate S-expressions into VM instructions. Can we come up with an equivalent that doesn't require constructing a bytecode? The essential problem here is remembering what to do next.
+
+This is looking awfully like a stack machine:
+
+Procedure call 1b:
+    arg1 arg2 add[2]
+
+Procedure call 2b:
+    arg1 arg2 arg3 add[3]
+
+Procedure call 3b:
+    arg1 arg2 add[2] arg3 add[2]
+
+Procedure call 4b:
+    arg1 arg2 add[2] arg3 get-func call[3]
+
+
+OK, but how do you implement tail calls with such a system?
+
+(define (last-element lst)
+  (if (null? (cdr lst))
+    lst
+    (last-element (cdr lst))))
+
+last_element:
+    lst
+    cdr 1
+    null?
+    br.neq not_null
+    lst
+    goto end
+not_null:
+    lst
+    cdr 1
+    goto last_element
+end:
+
+
+(Of course this is slightly simpler:
+
+    last_element:
+        lst
+        cdr 1
+        null?
+        br.eq is_null
+        lst
+        cdr 1
+        goto last_element
+    is_null:
+        lst
+
+...but it's easier to compile it the first way than make it figure out which way to branch to save on only one goto.)
+
+
+I think I should keep this bytecode idea in mind but, for now, I think I'll stick to the recursive implementation or maybe apply an iterative tree traversal algorithm. In any case, it's clear to me that the recursive interpreter should be perfected first.
+
+Tails calls in the recursive parser can be implemented using "run and return successor" -- the function's return value must itself be evaluated, and therefore a function call can return a function call. In fact, if you think about it, that's all a tail call *is*: an expression returning a function call. After all, what's the difference between
+
+    (define (foo) 7)
+
+and:
+
+    (define (bar) (baz))
+
+foo returns 7; bar returns (baz).
+
+However! One must make a distinction between returning an invocation and returning a list:
+
+    (define (foo) (cons 1 '(2 3)))
+
+Obviously, (foo) shouldn't try to call (1 2 3). (foo) can return the cons call itself, though...

@@ -19,13 +19,19 @@ class BadTokenError(SyntaxError):
         # @TODO@ - make sure the exception text is never too long
         super(BadTokenError, self).__init__("Bad token: {0}".format(token))
 
-class UnterminatedError(SyntaxError):
+class UnexpectedEOFError(SyntaxError):
+    pass
+
+class UnterminatedError(UnexpectedEOFError):
     pass
 
 class EscapeError(SyntaxError):
     pass
 
 class BadDotPairError(SyntaxError):
+    pass
+
+class BadHashError(SyntaxError):
     pass
 
 
@@ -81,6 +87,19 @@ class Parser(object):
             else:
                 # Not expecting a ')' in this context
                 raise BadTokenError(ch)
+        elif ch == '#':
+            try:
+                ch = self.__file.read_ch()
+            except MyStream.EOF:
+                # @TODO@ - more specific exception?
+                raise UnexpectedEOFError("End of file after '#'")
+
+            if ch == 't':
+                return tokens.Bool(True)
+            elif ch == 'f':
+                return tokens.Bool(False)
+            else:
+                raise BadHashError("Unexpected character after #: {0}".format(ch))
         elif _MATCH_ATOM_CHAR.match(ch):
             # Assume an atom
             # Put back last char so __read_atom can see it
