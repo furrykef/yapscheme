@@ -18,7 +18,7 @@ Should the Parser class support the 'with' statement (to ensure file always clos
 
 Smart file handling that will always raise EOFError after hitting end of file (saves us from having to check for '' after every time we read) -- keeping track of line and column numbers would be nice, too
 
-If we stick with Python 2.7 support, remember isinstance(0L, int) is False!
+If we stick with Python 2.7 support, remember isinstance(0L, int) is False! (So is isinstance(0, long), for that matter.) Hence, there's no easy backportable way to check if something is an integer.
 
 Constant folding?
 * Test case: evaluate "7 7", check "results[0] is results[1]"
@@ -136,3 +136,20 @@ Terminology
 What I currently call "Python macros" are not really macros, since they are evaluated at runtime. Maybe "runtime macro"?
 
 What I call an "Environment" (an interpreter and its state) does not match R5RS's definition of "environment" (a dictionary of bindings).
+
+
+Freakish stuff to take care of sometime
+---------------------------------------
+Arithmetic with strings:
+    yap> (+ 1 "hello")
+
+    [traceback: unsupported operand type(s) for +=: 'int' and 'str']
+
+Doing things with None / weird use of define:
+    yap> (define banana (define orange 1))
+
+    yap> banana
+
+    yap> (+ banana 1)
+
+    [traceback: 'NoneType' object has no attribute 'value']

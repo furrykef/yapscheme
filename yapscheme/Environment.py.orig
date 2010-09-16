@@ -1,6 +1,4 @@
-from __future__ import division
-
-from yapscheme import tokens
+from . import tokens
 
 
 class EnvironmentError(Exception):
@@ -87,17 +85,24 @@ class Environment(object):
 
     def runOne(self, expression):
         call_stack = [expression]
-        while len(call_stack) > 0:
-            expression = call_stack.pop()
+        while len(call_stack > 0):
+            expression = call_stack[-1]
             if isinstance(expression, tokens.Cons):
-                call_stack.append(_Invocation(expression))
-            elif isinstance(expression, _Invocation):
-                expression = expression.expression
+                # A procedure call that hasn't been converted to an invocation yet
                 if expression.isImproperList():
                     raise ImproperListCallError
-                operation = expression.car
+                call_stack[-1] = _Invocation(expression.traverse())
+            elif isinstance(expression, _Invocation):
+                try:
+                    ???
+                except StopIteration:
+                    ???
+
+                operation = self.runOne(expression.car)
                 if isinstance(operation, tokens.PythonProcedure):
                     # A procedure evaluates its arguments first...
+                    # (@TODO@ - consider adding traverse() and toPythonList() to EmptyList
+                    #  in order to avoid this kind of special-casing)
                     if expression.cdr == tokens.EmptyList():
                         args = []
                     else:
@@ -120,5 +125,8 @@ class Environment(object):
 
 
 class _Invocation(object):
-    def __init__(self, expression):
-        self.expression = expression
+    def __init__(self, funcall):
+        self.funcall = funcall
+
+    def __next__(self):
+        return next(self.funcall)
