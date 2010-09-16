@@ -1,25 +1,25 @@
 from . import tokens
 
 
-class EnvironmentError(Exception):
+class InterpreterError(Exception):
     pass
 
-class NotEnoughArgumentsError(EnvironmentError):
+class NotEnoughArgumentsError(InterpreterError):
     pass
 
-class TooManyArgumentsError(EnvironmentError):
+class TooManyArgumentsError(InterpreterError):
     pass
 
-class BadArgumentError(EnvironmentError):
+class BadArgumentError(InterpreterError):
     pass
 
-class NotCallableError(EnvironmentError):
+class NotCallableError(InterpreterError):
     pass
 
-class ImproperListCallError(EnvironmentError):
+class ImproperListCallError(InterpreterError):
     pass
 
-class UnknownIdentifier(EnvironmentError):
+class UnknownIdentifier(InterpreterError):
     pass
 
 
@@ -59,7 +59,7 @@ def DEFINE(env, argument_cons):
         raise TooManyArgumentsError("define: Too many arguments")
     if not isinstance(argument_cons.car, tokens.Identifier):
         raise BadArgumentError("define: First argument must be an identifier")
-    env._sym_tbl[argument_cons.car.value] = env.runOne(argument_cons.cdr.car)
+    env._sym_tbl[argument_cons.car.value] = env.evalOne(argument_cons.cdr.car)
 
 @tokens.PythonMacro
 def QUOTE(env, argument_cons):
@@ -70,7 +70,7 @@ def QUOTE(env, argument_cons):
     return argument_cons.car
 
 
-class Environment(object):
+class Interpreter(object):
     def __init__(self):
         self._sym_tbl = {
             '+': ADD,
@@ -81,13 +81,13 @@ class Environment(object):
         }
 
     def run(self, parse_tree):
-        return [self.runOne(expression) for expression in parse_tree]
+        return [self.evalOne(expression) for expression in parse_tree]
 
-    def runOne(self, expression):
+    def evalOne(self, expression):
         if isinstance(expression, tokens.Cons):
             if expression.isImproperList():
                 raise ImproperListCallError
-            operation = self.runOne(expression.car)
+            operation = self.evalOne(expression.car)
             if isinstance(operation, tokens.PythonProcedure):
                 # A procedure evaluates its arguments first...
                 # (@TODO@ - consider adding traverse() and toPythonList() to EmptyList

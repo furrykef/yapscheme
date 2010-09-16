@@ -2,7 +2,7 @@
 import unittest
 
 from .. import Parser
-from .. import Environment
+from .. import Interpreter
 from ..tokens import Cons, EmptyList, Identifier, Number, String
 
 
@@ -10,10 +10,10 @@ def parseOne(arg):
     return Parser.parse(arg)[0]
 
 def run(arg):
-    return Environment.Environment().run(Parser.parse(arg))
+    return Interpreter.Interpreter().run(Parser.parse(arg))
 
 def runOne(arg):
-    return Environment.Environment().runOne(parseOne(arg))
+    return Interpreter.Interpreter().evalOne(parseOne(arg))
 
 
 class TestParser(unittest.TestCase):
@@ -137,7 +137,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(parseOne("()"), EmptyList())
 
 
-class TestBareEnvironment(unittest.TestCase):
+class TestBareInterpeter(unittest.TestCase):
     def testInteger(self):
         self.assertEqual(runOne("-1337"), Number(-1337))
 
@@ -145,11 +145,11 @@ class TestBareEnvironment(unittest.TestCase):
         self.assertEqual(runOne("(quote 7)"), Number(7))
 
     def testRejectQuoteWithMultipleArguments(self):
-        with self.assertRaises(Environment.TooManyArgumentsError):
+        with self.assertRaises(Interpreter.TooManyArgumentsError):
             runOne("(quote 7 2)")
 
     def testRejectQuoteWithNoArguments(self):
-        with self.assertRaises(Environment.NotEnoughArgumentsError):
+        with self.assertRaises(Interpreter.NotEnoughArgumentsError):
             runOne("(quote)")
 
     def testQuoteList(self):
@@ -168,23 +168,23 @@ class TestBareEnvironment(unittest.TestCase):
         self.assertEqual(runOne("(+ (+ 1 2) (+ 3 4))"), Number(10))
 
     def testRejectNullProcedure(self):
-        with self.assertRaises(Environment.NotCallableError):
+        with self.assertRaises(Interpreter.NotCallableError):
             runOne("()")
 
     def testRejectNumberAsProcedure(self):
-        with self.assertRaises(Environment.NotCallableError):
+        with self.assertRaises(Interpreter.NotCallableError):
             runOne("(27)")
 
     def testRejectProcedureCallWithDot(self):
-        with self.assertRaises(Environment.ImproperListCallError):
+        with self.assertRaises(Interpreter.ImproperListCallError):
             runOne("(+ 1 . 2)")
 
     def testRejectUnknownIdentifier(self):
-        with self.assertRaises(Environment.UnknownIdentifier):
+        with self.assertRaises(Interpreter.UnknownIdentifier):
             runOne("this-does-not-exist")
 
     def testRejectCallingUnknownIdentifier(self):
-        with self.assertRaises(Environment.UnknownIdentifier):
+        with self.assertRaises(Interpreter.UnknownIdentifier):
             runOne("(this-does-not-exist)")
 
     def testDefine(self):
@@ -192,26 +192,26 @@ class TestBareEnvironment(unittest.TestCase):
         self.assertEqual(result, [None, Number(42)])
 
     def testRejectDefineWithTooManyArguments(self):
-        with self.assertRaises(Environment.TooManyArgumentsError):
+        with self.assertRaises(Interpreter.TooManyArgumentsError):
             runOne("(define hello 2 3)")
 
     def testRejectDefineWithNoArguments(self):
-        with self.assertRaises(Environment.NotEnoughArgumentsError):
+        with self.assertRaises(Interpreter.NotEnoughArgumentsError):
             runOne("(define)")
 
     def testRejectDefineWithOneArgument(self):
-        with self.assertRaises(Environment.NotEnoughArgumentsError):
+        with self.assertRaises(Interpreter.NotEnoughArgumentsError):
             runOne("(define foo)")
 
     def testDefineRequiresAnIdentifierAsFirstArgument(self):
-        with self.assertRaises(Environment.BadArgumentError):
+        with self.assertRaises(Interpreter.BadArgumentError):
             runOne("(define 7 2)")
 
     def testSubtraction(self):
         self.assertEqual(runOne("(- 2 7)"), Number(-5))
 
     def testRejectSubtrationWithNoOperands(self):
-        with self.assertRaises(Environment.NotEnoughArgumentsError):
+        with self.assertRaises(Interpreter.NotEnoughArgumentsError):
             runOne("(-)")
 
     def testSubtractionWithOneOperandIsNegation(self):

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import os
 import sys
-from . import Parser, Environment
+from . import Parser, Interpreter
 
 
 def main():
-    env = Environment.Environment()
+    env = Interpreter.Interpreter()
     while True:
         try:
             input_str = input("yap> ").strip()
@@ -18,9 +18,9 @@ def main():
                     print(result)
         except Parser.ParseError as e:
             print("PARSE ERROR:", e, file=sys.stderr)
-        except Environment.EnvironmentError as e:
+        except Interpreter.InterpreterError as e:
             suppress_error = False
-            if isinstance(e, Environment.UnknownIdentifier):
+            if isinstance(e, Interpreter.UnknownIdentifier):
                 if handleUnknownIdentifier(input_str):
                     suppress_error = True
 
