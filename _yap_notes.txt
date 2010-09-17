@@ -38,6 +38,8 @@ Test cases:
 * Reject define-syntax outside top level (req. by 5.3)
 * Reject 'define' anywhere outside top level or beginning of body (req. by 5.2)
 * "[you cannot] write a macro in a `nested position', i.e., an expression like ((foo x) y z) is always considered a procedure application."
+* (lambda () (display "foo") (display "bar"))   -- displays "foobar" on evaluation
+
 
 <foof> you might want to grab the tests from chibi-scheme, they're divided into basic tests (procedure calls, closures, etc.), then r5rs tests, then library tests
 

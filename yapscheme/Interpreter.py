@@ -52,6 +52,16 @@ def MUL(argument_list):
 
 
 @tokens.PythonMacro
+def DEFINE(env, argument_cons):
+    if argument_cons == tokens.EmptyList() or argument_cons.cdr == tokens.EmptyList():
+        raise NotEnoughArgumentsError("define: Not enough arguments")
+    if argument_cons.cdr.cdr != tokens.EmptyList():
+        raise TooManyArgumentsError("define: Too many arguments")
+    if not isinstance(argument_cons.car, tokens.Identifier):
+        raise BadArgumentError("define: First argument must be an identifier")
+    env._sym_tbl[argument_cons.car.value] = env.evalOne(argument_cons.cdr.car)
+
+@tokens.PythonMacro
 def IF(env, argument_cons):
     args = argument_cons.toPythonList()
     if len(args) < 2:
@@ -68,14 +78,11 @@ def IF(env, argument_cons):
             return None
 
 @tokens.PythonMacro
-def DEFINE(env, argument_cons):
-    if argument_cons == tokens.EmptyList() or argument_cons.cdr == tokens.EmptyList():
-        raise NotEnoughArgumentsError("define: Not enough arguments")
-    if argument_cons.cdr.cdr != tokens.EmptyList():
-        raise TooManyArgumentsError("define: Too many arguments")
-    if not isinstance(argument_cons.car, tokens.Identifier):
-        raise BadArgumentError("define: First argument must be an identifier")
-    env._sym_tbl[argument_cons.car.value] = env.evalOne(argument_cons.cdr.car)
+def LAMBDA(env, argument_cons):
+    args = argument_cons.toPythonList()
+    if len(args) < 2:
+        raise NotEnoughArgumentsError("lambda: Not enough arguments")
+    return _Lambda(argument_cons.car, argument_cons.cdr.car)
 
 @tokens.PythonMacro
 def QUOTE(env, argument_cons):
@@ -94,6 +101,7 @@ class Interpreter(object):
             '*': MUL,
             'define': DEFINE,
             'if': IF,
+            'lambda': LAMBDA,
             'quote': QUOTE
         }
 
@@ -107,16 +115,15 @@ class Interpreter(object):
             operation = self.evalOne(expression.car)
             if isinstance(operation, tokens.PythonProcedure):
                 # A procedure evaluates its arguments first...
-                # (@TODO@ - consider adding traverse() and toPythonList() to EmptyList
-                #  in order to avoid this kind of special-casing)
-                if expression.cdr == tokens.EmptyList():
-                    args = []
-                else:
-                    args = expression.cdr.toPythonList()
+                args = expression.cdr.toPythonList()
                 return operation.call(self.run(args))
             elif isinstance(operation, tokens.PythonMacro):
                 # ...but a macro does not.
                 return operation.call(self, expression.cdr)
+            elif isinstance(operation, _Lambda):
+                # A lambda does, though (@TODO@ - duplication?)
+                args = expression.cdr.toPythonList()
+                return operation.call(self, self.run(args))
             else:
                 raise NotCallableError("Not a macro or procedure")
         elif isinstance(expression, tokens.EmptyList):
@@ -128,3 +135,14 @@ class Interpreter(object):
                 raise UnknownIdentifier("Unknown identifier: {0}".format(expression.value))
         else:
             return expression
+
+
+class _Lambda(object):
+    def __init__(self, args, expr):
+        self.args = args
+        self.expr = expr
+
+    def call(self, env, args):
+        for identifier, arg_value in zip(self.args.toPythonList(), args):
+            env._sym_tbl[identifier.value] = arg_value
+        return env.evalOne(self.expr)

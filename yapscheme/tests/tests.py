@@ -279,6 +279,31 @@ class TestBareInterpeter(unittest.TestCase):
     def testEmptyListIsTrue(self):
         self.assertEqual(runOne("(if (quote ()) 1 2)"), Number(1))
 
+    def testTrivialLambda(self):
+        result = run("""(define get-the-answer
+                          (lambda ()
+                            (* 21 2)))
+                        (get-the-answer)""")
+        self.assertEqual(result, [None, Number(42)])
+
+    def testRejectLambdaWithTooFewArguments(self):
+        with self.assertRaises(Interpreter.NotEnoughArgumentsError):
+            runOne("(lambda ())")
+
+    def testDefineProcedureThatTakesOneArgument(self):
+        result = run("""(define add2
+                          (lambda (x)
+                            (+ x 2)))
+                        (add2 40)""")
+        self.assertEqual(result, [None, Number(42)])
+
+    def testDefineProcedureThatTakesTwoArguments(self):
+        result = run("""(define add
+                          (lambda (x y)
+                            (+ x y)))
+                        (add 32 10)""")
+        self.assertEqual(result, [None, Number(42)])
+
 
 if __name__ == '__main__':
     unittest.main()
