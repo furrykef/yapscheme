@@ -1,0 +1,7 @@
+This is intended to be a full implementation of R<sup>5</sup>RS (or perhaps a later standard) in Python 3.1, though it still has quite a ways to go. It is implemented using test-driven development.
+
+This project is being written for fun and to learn about Scheme and writing an interpreter for one -- not because it will actually be useful. though some usefulness may end up being a side-effect. Hence, there is almost zero emphasis on performance, or indeed anything but conformance with the standard and passing its own test suite. Hence, if you're looking for something to use with your program, you **might** be better served with a package such as [pyscheme](http://hkn.eecs.berkeley.edu/~dyoo/python/pyscheme/) or [Psyche](http://www.xs4all.nl/~yduppen/site/psyche.html).
+
+If, on the other hand, you want to see how to apply test-driven development to write a simple interpreter in Python, this just might be the project for you!
+
+**NOTE** - It will be a while before this project achieves any real level of usefulness. The philosophy I'm going with is getting the 'hard' stuff out of the way (like macros and continuations) before implementing the easy stuff (e.g. the many trivial routines in the language). That way, the hard stuff will get done. As of Sep. 16, 2010, variable scoping and proper tail recursion aren't even implemented yet, so there's not much to see right now.
